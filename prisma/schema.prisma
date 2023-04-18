@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator zod {
+  provider = "zod-prisma-types"
+  // useMultipleFiles                 =  false  //  default is false
+  // createInputTypes                 =  false  //  default is true
+  // createModelTypes                 =  true   //  default is true
+  // addInputTypeValidation           =  false  //  default is true
+  // addIncludeType                   =  false  //  default is true
+  // addSelectType                    =  false  //  default is true
+  // validateWhereUniqueInput         =  true   //  default is false
+  // createOptionalDefaultValuesTypes =  true   //  default is false
+  // createRelationValuesTypes        =  true   //  default is false
+  // createPartialTypes               =  true   //  default is false
+  // useDefaultValidators             =  false  //  default is true
+  // coerceDate                       =  false  //  default is true
+  // writeNullishInModelTypes         =  true   //  default is false
+}
+
+// Object {
+//   "email": "xxxxx@gmail.com",
+//   "email_verified": true,
+//   "family_name": "John Deer",
+//   "given_name": "John",
+//   "hd": "gmail.com",
+//   "locale": "en",
+//   "name": "John Deer",
+//   "picture": "https://lh3.googleusercontent.com/a/asdfjasdklfjaslkf",
+//   "sub": "10998837733652322",
+// }
+
+model Business {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  password     String
+  phoneNumber  String
+  state        String
+  location     String
+  neighborhood String
+  type         BusinessType
+
+  couponIds String[]   @db.ObjectId
+  WishList  WishList[]
+
+  coupons Coupon[] @relation(fields: [couponIds], references: [id])
+}
+
+model WishList {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  businessId String @db.ObjectId
+  company    String
+
+  products Product[]
+
+  business Business @relation(fields: [businessId], references: [id])
+}
+
+model Compony {
+  id   String       @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  type BusinessType
+
+  orders  Order[]
+  workers Worker[]
+  coupons Coupon[]
+}
+
+enum BusinessType {
+  HOSPITAL
+  PHARMACY
+  GROCERY
+}
+
+model Worker {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  password  String
+  role      WorkerRole
+  componyId String     @db.ObjectId
+
+  company Compony @relation(fields: [componyId], references: [id])
+}
+
+enum WorkerRole {
+  ADMIN
+  SUPERVISOR
+  DELIVERY
+}
+
+model Product {
+  id           String  @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  dec          String?
+  category     String
+  company      String
+  image        String?
+  price        Int
+  oldPrice     Int?
+  available    Boolean @default(true)
+  hot          Boolean @default(false)
+  freeShipping Boolean @default(true)
+  wishListId   String? @db.ObjectId
+
+  likes  String[] @default([])
+  veiws  String[] @default([])
+  orders String[] @db.ObjectId
+
+  WishList WishList? @relation(fields: [wishListId], references: [id])
+}
+
+model Order {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  subtotal  Float
+  delivery  Float
+  discount  Float
+  total     Float
+  couponId  String? @db.ObjectId
+  componyId String  @db.ObjectId
+
+  items OrderItem[]
+
+  coupon  Coupon? @relation(fields: [couponId], references: [id])
+  compony Compony @relation(fields: [componyId], references: [id])
+}
+
+type OrderItem {
+  id           String
+  name         String
+  size         String
+  color        String
+  price        Int
+  freeShipping Boolean @default(false)
+
+  image String[]
+}
+
+model Coupon {
+  id      String  @id @default(auto()) @map("_id") @db.ObjectId
+  code    String
+  amount  Float
+  isValid Boolean
+  company Compony @relation(fields: [componyId], references: [id])
+
+  componyId   String   @db.ObjectId
+  orders      Order[]
+  businessIds String[] @db.ObjectId
+
+  businesses Business[] @relation(fields: [businessIds], references: [id])
+}
