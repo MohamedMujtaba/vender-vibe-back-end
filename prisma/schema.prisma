@@ -70,7 +70,7 @@ model WishList {
   createdAt   DateTime @default(now()) @map(name: "created_at")
   updatedAt   DateTime @updatedAt @map(name: "updated_at")
 
-  Business Business  @relation(fields: [businessId], references: [id])
+  business Business  @relation(fields: [businessId], references: [id])
   company  Company   @relation(fields: [companyId], references: [id])
   products Product[] @relation(fields: [productsIds], references: [id])
 
