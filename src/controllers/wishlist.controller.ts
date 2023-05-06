@@ -12,9 +12,10 @@ const createWishList = async (req: CreateWishListReq, res: Response) => {
         name,
         company: { connect: { id: companyId } },
         business: {
-          connect: {
-            id: { in: productsIds },
-          },
+          connect: { id: businessId },
+        },
+        products: {
+          connect: productsIds.map((id) => ({ id: id })),
         },
       },
     });
